@@ -211,19 +211,24 @@ void addRooms(){
 	}
 }
 
+/*
+ Void function to change directory to the directory created by makeDirectory()
+ and create a file for each room to append all room information to
+*/
 void addToFile(){
-	chdir(directoryName);
+	chdir(directoryName); //change directory to directory made in makeDirectory
 	int i, j;
-	for(i = 0; i < 7; i++){ 
-		FILE * newFile = fopen(rooms[i].roomName, "w");
-		fprintf(newFile, "ROOM NAME: %s\n", rooms[i].roomName);
+	for(i = 0; i < 7; i++){ //iterate through each room
+		FILE * newFile = fopen(rooms[i].roomName, "w"); //create new file with room name, write only
+		fprintf(newFile, "ROOM NAME: %s\n", rooms[i].roomName); //print room name into file
 		
-		for(j = 0; j < rooms[i].numConnections; j++){
+		for(j = 0; j < rooms[i].numConnections; j++){ //iterate through all the connections
+			//print connection number and name to the file
 			fprintf(newFile, "CONNECTION %d: %s\n", j + 1, rooms[i].connections[j]->roomName);
 		}
-		
+		//print room type to file
 		fprintf(newFile, "ROOM TYPE: %s\n", rooms[i].roomType);
-		fclose(newFile);
+		fclose(newFile); //close file
 	}
 }
 
@@ -243,16 +248,6 @@ int main(){
 	addRooms();
 	makeDirectory();
 	addToFile();
-	/*
-	int p, m;
-	for(p = 0; p < 7; p++){
-		printf("Room Name: %s\n", rooms[p].roomName);
-		printf("Room Type: %s\n", rooms[p].roomType);
-		for(m = 0; m < rooms[p].numConnections; m++){
-			printf("Connected: %s\n", rooms[p].connections[m]->roomName);
-		}
-		printf("\n");
-	}*/
 	
 	return 0;
 }
