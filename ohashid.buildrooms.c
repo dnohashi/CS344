@@ -169,9 +169,10 @@ int IsSameRoom(struct Room* x, struct Room* y){
 	return bool;
 }
 
-int main(){
-	srand(time(NULL)); //set seed
-
+/*
+ Void function to set initial 6 rooms (fill struct Room array)
+*/
+void setRooms(){
 	int i, index;
 	int bool = 1;
 	//iterate room selections for up to 7 rooms
@@ -190,11 +191,23 @@ int main(){
 		
 		bool = 1;
 	}
-	
+}
+
+/*
+ Void function to continue to add rooms while the graph is not full
+ Calls on IsGraphFull() and AddRandomConnection()
+*/
+void addRooms(){
 	//continue to add rooms while graph is not full
 	while(IsGraphFull() == 0){
 		AddRandomConnection();
 	}
+}
+
+int main(){
+	srand(time(NULL)); //set seed
+	setRooms();
+	addRooms();
 	
 	int p, m;
 	for(p = 0; p < 7; p++){
