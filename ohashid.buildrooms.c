@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <limits.h>
 
 #define MAX_ROOMS 6
 
@@ -38,6 +40,8 @@ struct Room{
 */
 struct Room rooms[7];
 
+char directoryName[NAME_MAX+1];
+
 int IsGraphFull();
 void AddRandomConnection();
 struct Room* GetRandomRoom();
@@ -46,6 +50,9 @@ int ConnectionAlreadyExists(struct Room* x, struct Room* y);
 void ConnectRoom(struct Room* x, struct Room* y);
 int IsSameRoom(struct Room* x, struct Room* y);
 int roomUsed(char *string);
+void setRooms();
+void addRooms();
+void addToFile();
 
 /*
  Tracks rooms used so far, returns 1 if room has been used, else return 0
@@ -204,11 +211,26 @@ void addRooms(){
 	}
 }
 
+void addToFile(){
+
+}
+
+void makeDirectory(){
+	char *prefix = "ohashid.rooms."; //prefix for directory to be made
+	int pid = getpid(); //gets process id
+	//char directoryName[NAME_MAX+1]; //will hold name of directory, set to system filename max length
+	snprintf(directoryName, NAME_MAX + 1,"%s%d", prefix, pid);
+	printf("%s\n", directoryName);
+	mkdir(directoryName, 0777);		
+}
+
 int main(){
 	srand(time(NULL)); //set seed
 	setRooms();
 	addRooms();
-	
+	makeDirectory();
+	//addToFile();
+	/*
 	int p, m;
 	for(p = 0; p < 7; p++){
 		printf("Room Name: %s\n", rooms[p].roomName);
@@ -217,7 +239,7 @@ int main(){
 			printf("Connected: %s\n", rooms[p].connections[m]->roomName);
 		}
 		printf("\n");
-	}
+	}*/
 	
 	return 0;
 }
