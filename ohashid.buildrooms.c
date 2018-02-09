@@ -35,11 +35,11 @@ struct Room rooms[7];
 
 int IsGraphFull();
 void AddRandomConnection();
-struct Room GetRandomRoom();
-int CanAddConnectionFrom(struct Room);
-int ConnectionAlreadyExists(struct Room x, struct Room y);
-void ConnectRoom(struct Room x, struct Room y);
-int IsSameRoom(struct Room x, struct Room y);
+struct Room* GetRandomRoom();
+int CanAddConnectionFrom(struct Room*);
+int ConnectionAlreadyExists(struct Room* x, struct Room* y);
+void ConnectRoom(struct Room* x, struct Room* y);
+int IsSameRoom(struct Room* x, struct Room* y);
 int roomUsed(char *string);
 
 /*
@@ -72,26 +72,25 @@ int IsGraphFull(){
  Gets two rooms, validates room, verifies they can get connected, and connects the two rooms.
 */
 void AddRandomConnection(){
-	struct Room A;
-	struct Room B;
+	struct Room* A;
+	struct Room* B;
 	while(1){
+		printf("AddRandomConnection(): Retrieving A\n");
 		A = GetRandomRoom();
 		if(CanAddConnectionFrom(A) == 1){
-			printf("Found A: %s\n", A.roomName);
+			printf("A: %s\n", A->roomName);
 			break;
 		}
 	}
-
+	printf("Retrieveing B\n");
 	do{
 		B = GetRandomRoom();
-		printf("in the do while loop\n");
-		printf("B: %s\n", B.roomName);
 	}while(CanAddConnectionFrom(B) == 0 || IsSameRoom(A, B) == 1 || ConnectionAlreadyExists(A, B) == 1);
 
 	printf("out of the do while loop\n");
 
-	printf("A: %s\n", A.roomName);
-	printf("B: %s\n", B.roomName);
+	printf("A: %s\n", A->roomName);
+	printf("B: %s\n", B->roomName);
 	ConnectRoom(A, B);
 	ConnectRoom(B, A);
 }
@@ -99,18 +98,18 @@ void AddRandomConnection(){
 /*
  Returns random room.
 */
-struct Room GetRandomRoom(){
+struct Room* GetRandomRoom(){
 	int roomNum = rand() % 7;
-	return rooms[roomNum];
+	return &rooms[roomNum];
 }
 
 /*
  Checks to see if connections can be made from given room.
  Returns 1 if possible, returns 0 if not
 */
-int CanAddConnectionFrom(struct Room x){
+int CanAddConnectionFrom(struct Room* x){
 	int bool = 1;
-	if(x.numConnections == 6) bool = 0;
+	if(x->numConnections == 6) bool = 0;
 	return bool;
 }
 
@@ -118,17 +117,20 @@ int CanAddConnectionFrom(struct Room x){
  Checks if connection between two rooms already exists.
  Returns 1 if connection exists, else returns 0.
 */
-int ConnectionAlreadyExists(struct Room x, struct Room y){
+int ConnectionAlreadyExists(struct Room* x, struct Room* y){
 	int i;
 	int bool = 0;
-	printf("test x name: %s\n", x.roomName);
-	for(i = 0; i < x.numConnections; i++){
-		printf("X connection: %s\n", x.connections[i]->roomName);
-		if(x.connections[i]->roomName ==  y.roomName) bool = 1;
+	printf("ConnectionAlreadyExists(): Test Room X Name: %s\n", x->roomName);
+	printf("Test Room Y Name: %s\n", y->roomName);
+	printf("Room X # Connections: %d\n", x->numConnections);
+	for(i = 0; i < x->numConnections; i++){
+		printf("Call one\n");
+		if(x->connections[i]->roomName ==  y->roomName) bool = 1;
+		printf("Call two\n");
 	}
 	
 
-	printf("returning connectexists: %d\n\n", bool);	
+	printf("Returning connectexists: %d\n\n", bool);	
 
 	return bool;
 }
@@ -136,30 +138,33 @@ int ConnectionAlreadyExists(struct Room x, struct Room y){
 /*
  Function to connect two rooms when called on by AddRandomConnections()
 */
-void ConnectRoom(struct Room x, struct Room y){
-	int i, j, k;
+void ConnectRoom(struct Room* x, struct Room* y){
+	int i, j, k, l;
 	for(i = 0; i < 7; i++){
-		if(rooms[i].roomName == x.roomName){
+		if(rooms[i].roomName == x->roomName){
 			for(j = 0; j < 6; j++){
 				if(rooms[i].connections[j] == NULL){
-					rooms[i].connections[j] = &y;
+					rooms[i].connections[j] = y;
 					rooms[i].numConnections++;
-					rooms[i].connections[j]->numConnections++;
+					//rooms[i].connections[j]->numConnections++;
 					k = i;
+					l=j;
 					break;
 				}
 			}
 		}
 	}
+	printf("Connected:\n");
+	printf("%s with %s\n\n", rooms[k].roomName, rooms[k].connections[l]->roomName);
 }
 
 /*
  Checks to see if two rooms are the same
  Return 1 if rooms are the same, else return 0 
  */
-int IsSameRoom(struct Room x, struct Room y){
+int IsSameRoom(struct Room* x, struct Room* y){
 	int bool = 0;
-	if(x.roomName == y.roomName) bool = 1;
+	if(x->roomName == y->roomName) bool = 1;
 	
 	return bool;
 }
@@ -171,7 +176,7 @@ int main(){
 	int bool = 1;
 	for(i = 0; i < 7; i++){
 		while(bool){
-			index = rand() % 7;
+			index = rand() % 10;
 			if(roomUsed(roomNames[index])==0) bool = 0;
 		}
 
