@@ -212,15 +212,28 @@ void addRooms(){
 }
 
 void addToFile(){
-
+	chdir(directoryName);
+	int i, j;
+	for(i = 0; i < 7; i++){ 
+		FILE * newFile = fopen(rooms[i].roomName, "w");
+		fprintf(newFile, "ROOM NAME: %s\n", rooms[i].roomName);
+		
+		for(j = 0; j < rooms[i].numConnections; j++){
+			fprintf(newFile, "CONNECTION %d: %s\n", j + 1, rooms[i].connections[j]->roomName);
+		}
+		
+		fprintf(newFile, "ROOM TYPE: %s\n", rooms[i].roomType);
+		fclose(newFile);
+	}
 }
 
+/*
+ Void function to make directory with following format: ohashid.rooms.(pid)
+*/
 void makeDirectory(){
 	char *prefix = "ohashid.rooms."; //prefix for directory to be made
 	int pid = getpid(); //gets process id
-	//char directoryName[NAME_MAX+1]; //will hold name of directory, set to system filename max length
 	snprintf(directoryName, NAME_MAX + 1,"%s%d", prefix, pid);
-	printf("%s\n", directoryName);
 	mkdir(directoryName, 0777);		
 }
 
@@ -229,7 +242,7 @@ int main(){
 	setRooms();
 	addRooms();
 	makeDirectory();
-	//addToFile();
+	addToFile();
 	/*
 	int p, m;
 	for(p = 0; p < 7; p++){
