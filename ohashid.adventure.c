@@ -29,10 +29,11 @@ char* roomNames[] = {"Nursery", "BedOne", "BedTwo", "Living", "Kitchen", "Baseme
 //along with the step counter
 int start_room, end_room, connect, stepCounter;
 char fileName[256]; //global - holds the fileName to be read in "ohashid.rooms. ____" 
-pthread_mutex_t gameMutex;
+pthread_mutex_t lock;
+pthread_t thread[2];
 
 void readFiles();
-void playGame();
+void* playGame();
 void sendToRead();
 void readPerFile(char*string, int);
 struct Room* getRoom(char*);
@@ -40,7 +41,7 @@ int checkWin(struct Room*);
 void winMessage();
 void checkTime();
 void getDir();
-void getTime();
+void* getTime();
 void printTime();
 
 /*
@@ -137,14 +138,14 @@ int roomExists(char *input, struct Room* room){
 /*
  playGame() is responsible for providing the user the interface in which the game will be played
 */
-void playGame(){
+void* playGame(){
 	int won = 1;
 	int i;
 	size_t bufferSize = 0;
-
 	struct Room* current = &rooms[start_room]; //pointer to struct Room to hold start room
 	//continue to loop as long as won == 1
 	while(won){
+		pthread_mutex_lock(&lock);
 		char* input = NULL;
 		char* newLine;
 		printf("CURRENT LOCATION: %s\n", current->roomName);
@@ -163,9 +164,11 @@ void playGame(){
 		
 		//initiate if the input is time
 		if(strcmp(input, "time")==0){
-
-			getTime();		
-		
+			pthread_mutex_unlock(&lock);
+			pthread_create(&thread[1], NULL, getTime, NULL);
+			pthread_join(thread[1], NULL);
+			pthread_mutex_lock(&lock);
+			printTime();	
 		}
 		//otherwise, check if the input room name mexists
 		else if(roomExists(input, current)){
@@ -186,6 +189,7 @@ void playGame(){
 			printf("\nHUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
 		}
 		free(input); //free the buffer (for next input)
+		pthread_mutex_unlock(&lock);
 	}	
 }
 
@@ -251,7 +255,9 @@ void getDir(){
 /*
  getTime() will be responsible for reading in the current time into the currentTime.txt file
 */
-void getTime(){
+void* getTime(){
+	pthread_mutex_lock(&lock);
+
 	chdir("..");
 	char cwd[256];
 	getcwd(cwd, sizeof(cwd));
@@ -261,6 +267,7 @@ void getTime(){
 	char timeBuffer[256];
 	struct tm *sysTime;
 	time_t current = time(NULL);
+	
 	sysTime = localtime(&current);
 	//use strftime to fill the timeBuffer with the string content based on the values designated by sysTime
 	strftime(timeBuffer, sizeof(timeBuffer), "%t%-I:%M%#p, %A, %B %d, %Y" , sysTime);
@@ -270,8 +277,7 @@ void getTime(){
 	FILE* newFile = fopen(timeFile, "w"); //open the file for writing
 	fprintf(newFile, timeBuffer); //print the time into the opened file
 	fclose(newFile); //close the file
-
-	printTime();
+	pthread_mutex_unlock(&lock);
 }
 
 /*
@@ -283,16 +289,19 @@ void printTime(){
 	fgets(timeBuffer, 50, newFile);
 	printf("%s\n", timeBuffer);
 }
-
 /*
  Driver to get the directory the necessary files are in, read the data in, and play Adventure
 */
 int main(){
+	pthread_mutex_init(&lock, NULL);
 	getDir();
 	chdir(fileName);
 	sendToRead();
-	playGame();
 
+	pthread_create(&thread[0], NULL, playGame, NULL);
+	pthread_join(thread[0], NULL);
+
+	pthread_mutex_destroy(&lock);	
 	return 0;
 }
 
